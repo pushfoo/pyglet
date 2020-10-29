@@ -745,3 +745,17 @@ class TabletCursor:
 
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__, self.name)
+
+
+class InputManager(EventDispatcher):
+    """A manager for device connections"""
+
+    def on_connect(self, device):
+        pass
+
+    def on_disconnect(self, device):
+        pass
+
+
+InputManager.register_event_type('on_connect')
+InputManager.register_event_type('on_disconnect')

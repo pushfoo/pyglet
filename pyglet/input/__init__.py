@@ -106,7 +106,11 @@ def get_apple_remote(display=None):
     """
     return None
 
+
 if _is_pyglet_doc_run:
+
+    from .base import InputManager
+
     def get_devices(display=None):
         """Get a list of all attached input devices.
 
@@ -160,14 +164,19 @@ else:
         from .x11_xinput_tablet import get_tablets
         from .evdev import get_devices as evdev_get_devices
         from .evdev import get_joysticks
+        from .evdev import EvdevInputManager as InputManager
+
         def get_devices(display=None):
-            return (evdev_get_devices(display) +
-                    xinput_get_devices(display))
+            return (evdev_get_devices(display) + xinput_get_devices(display))
+
     elif compat_platform in ('cygwin', 'win32'):
         from .directinput import get_devices, get_joysticks
+        from .directinput import DirectInputInputManager as InputManager
         try:
             from .wintab import get_tablets
         except:
             pass
+
     elif compat_platform == 'darwin':
         from .darwin_hid import get_devices, get_joysticks, get_apple_remote
+        from .darwin_hid import DarwinInputManager as InputManager

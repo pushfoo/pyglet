@@ -247,3 +247,8 @@ def get_joysticks(display=None):
                 for device
                 in get_devices(display)] 
             if joystick is not None]
+
+
+class DirectInputInputManager(base.InputManager):
+    def __init__(self, pending=True):
+        pass

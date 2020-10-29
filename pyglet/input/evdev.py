@@ -41,7 +41,7 @@ import pyglet
 
 from pyglet.app.xlib import XlibSelectDevice
 from .base import Device, Control, RelativeAxis, AbsoluteAxis, Button, Joystick
-from .base import DeviceOpenException
+from .base import DeviceOpenException, InputManager
 from .evdev_constants import *
 
 c = pyglet.lib.load_library('c')
@@ -385,3 +385,34 @@ def get_joysticks(display=None):
                 for device
                 in get_devices(display)]
             if joystick is not None]
+
+
+class EvdevInputManager(InputManager, XlibSelectDevice):
+    def __init__(self, pending=True):
+        self._devices_file = open('/proc/bus/input/devices')
+        self._devices = set() if pending else self.get_current_devices()
+
+        pyglet.app.platform_event_loop._select_devices.add(self)
+
+    def __del__(self):
+        self._devices_file.close()
+
+    @staticmethod
+    def get_current_devices():
+        return {name for name in os.listdir('/dev/input') if name.startswith('event')}
+
+    def fileno(self):
+        """Allow this class to be Selectable"""
+        return self._devices_file.fileno()
+
+    def select(self):
+        """Query which devices have changed"""
+        current_devices = self.get_current_devices()
+        appeared = current_devices - self._devices
+        disappeared = self._devices - current_devices
+        self._devices = current_devices
+
+        for device_name in appeared:
+            self.dispatch_event('on_connect', device_name)
+        for device_name in disappeared:
+            self.dispatch_event('on_disconnect', device_name)

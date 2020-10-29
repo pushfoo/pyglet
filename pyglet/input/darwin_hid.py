@@ -39,7 +39,7 @@ from ctypes import cdll, util, CFUNCTYPE, byref, c_void_p
 from ctypes import c_int, c_ubyte, c_bool, c_uint32, c_uint64
 
 from .base import Device, Control, AbsoluteAxis, RelativeAxis, Button
-from .base import Joystick, AppleRemote
+from .base import Joystick, AppleRemote, InputManager
 from .base import DeviceExclusiveException
 
 from pyglet.libs.darwin.cocoapy import CFSTR, CFIndex, CFTypeID, known_cftypes
@@ -663,3 +663,8 @@ def get_apple_remote(display=None):
     for device in _manager.devices:
         if device.product == 'Apple IR':
             return AppleRemote(PygletDevice(display, device, _manager))
+
+
+class DarwinInputManager(InputManager):
+    def __init__(self, pending=True):
+        pass
