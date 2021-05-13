@@ -59,6 +59,7 @@ context::
 from ctypes import c_char_p, cast
 import warnings
 
+from pyglet import gl
 from pyglet.gl.gl import GL_EXTENSIONS, GL_RENDERER, GL_VENDOR, GL_VERSION, GLint, glGetIntegerv, glGetString
 from pyglet.util import asstr
 
@@ -75,6 +76,8 @@ class GLInfo:
     """
     have_context = False
     version = '0.0.0'
+    major_version = None
+    minor_version = None
     vendor = ''
     renderer = ''
     extensions = set()
@@ -90,7 +93,17 @@ class GLInfo:
         if not self._have_info:
             self.vendor = asstr(cast(glGetString(GL_VENDOR), c_char_p).value)
             self.renderer = asstr(cast(glGetString(GL_RENDERER), c_char_p).value)
-            self.version = asstr(cast(glGetString(GL_VERSION), c_char_p).value)
+            #self.version = asstr(cast(glGetString(GL_VERSION), c_char_p).value)
+
+            gl_major, gl_minor = GLint(), GLint()
+            glGetIntegerv(gl.GL_MAJOR_VERSION, gl_major)
+            glGetIntegerv(gl.GL_MINOR_VERSION, gl_minor)
+
+            self.major_version = gl_major.value
+            self.minor_version = gl_minor.value
+
+            self.version = f"{self.major_version}.{self.minor_version}.0"
+
             if self.have_version(3):
                 from pyglet.gl.glext_arb import glGetStringi, GL_NUM_EXTENSIONS
                 num_extensions = GLint()
