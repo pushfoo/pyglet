@@ -59,11 +59,78 @@ def clamp(num: float, min_val: float, max_val: float) -> float:
     return max(min(num, max_val), min_val)
 
 
+class _FrozenMixin:
+    """
+    A mix-in to create immutable & hashable versions of math types.
+
+    The hash values for each subclass are equivalent to a tuple with the
+    same number of elements.
+
+    Any class used with this mix-in must be iterable for hashing to work
+    Successive yield statements in `__iter__` for each element are
+    sufficient.
+
+    For convenience and safety, subclasses can use ``_FrozenMixin``'s
+    ``SLOT_EXTENSIONS`` class variable to set their ``__slots__``
+    class variables to ensure they work properly::
+
+         class FrozenType(_FrozenMixin, BaseType):
+
+             __slots__ = _FrozenMixin.SLOT_EXTENSIONS
+             ...
+
+    This must be done on the subclass because Python allows only a
+    single parent class to define or extend slots. Attempting to specify
+    slots in more than one parent class will raise a ``TypeError`` that
+    mentions a layout conflict. For more information, please see the
+    `relevant Python documentation <https://docs.python.org/3/reference/datamodel.html#notes-on-using-slots>`_.
+    """
+
+    # Use this to set the
+    SLOT_EXTENSIONS = '_hash', '_frozen'
+
+    _frozen = False  # ugly way to provide an initial False value
+
+    def __init__(self, *args, **kwargs):
+        self._frozen = False
+        super().__init__(*args, **kwargs)
+
+        # Hash value is computed lazily in case vectors are only being
+        # used as constants for arithmetic rather than hashed.
+        self._hash = None
+        self._frozen = True
+
+    def __setattr__(self, key, value):
+        if self._frozen:
+            self._raise_immutable(key)
+        super().__setattr__(key, value)
+
+    def _raise_immutable(self, key):
+        """
+        Helper to raise an exception when attempting to set values.
+
+        :param key: the attribute which code attempted to change
+        :return:
+        """
+        raise AttributeError(
+            f"Cannot set {key}: {self.__class__.__name__}"
+            f" instances are immutable"
+        )
+
+    def __hash__(self) -> int:
+        """Return the hash for this vector, computing it if necessary"""
+
+        if self._hash is None:
+            self._hash = hash(tuple((v for v in self)))  # type: ignore
+        return self._hash
+
+
 class Vec2:
 
     __slots__ = 'x', 'y'
 
-    """A two-dimensional vector represented as an X Y coordinate pair.
+    """
+    A mutable 2-dimensional vector represented as an X Y coordinate pair.
 
     :parameters:
         `x` : int or float :
@@ -309,11 +376,41 @@ class Vec2:
         return f"Vec2({self.x}, {self.y})"
 
 
+class FrozenVec2(_FrozenMixin, Vec2):
+    """
+    An immutable 2-dimensional vector represented as an X Y coordinate pair.
+
+    In addition to imitating Pyglet 1.5's behavior, it was created for the
+    following uses cases:
+
+    #. Direction constants that will raise exceptions if modified
+    #. Storing positions in `a set object <https://docs.python.org/3/tutorial/datastructures.html#sets>`_.
+    #. Using positions as `keys to dictionaries <https://docs.python.org/3/tutorial/datastructures.html#dictionaries>`_.
+
+    Any attempts to modify the vector in-place will raise an
+    ``AttributeError``, but all other operations will return a new
+    ``FrozenVec2`` instance.
+
+    :parameters:
+        `x` : int or float :
+            The X coordinate of the vector.
+        `y`   : int or float :
+            The Y coordinate of the vector
+
+    """
+
+    slots__ = _FrozenMixin.SLOT_EXTENSIONS
+
+    def __init__(self, x: float = 0.0, y: float = 0.0) -> None:
+        super().__init__(x, y)
+
+
 class Vec3:
 
     __slots__ = 'x', 'y', 'z'
 
-    """A three-dimensional vector represented as X Y Z coordinates.
+    """
+    A mutable 3-dimensional vector represented as X Y Z coordinates.
 
     :parameters:
         `x` : int or float :
@@ -532,11 +629,40 @@ class Vec3:
         return f"Vec3({self.x}, {self.y}, {self.z})"
 
 
+class FrozenVec3(_FrozenMixin, Vec3):
+    """
+    An immutable 3-dimensional vector represented as X Y Z coordinates.
+
+    In addition to imitating Pyglet 1.5's behavior, it was created for the
+    following uses cases:
+
+    #. Direction constants that will raise exceptions if modified
+    #. Storing positions in `a set object <https://docs.python.org/3/tutorial/datastructures.html#sets>`_.
+    #. Using positions as `keys to dictionaries <https://docs.python.org/3/tutorial/datastructures.html#dictionaries>`_.
+
+    Any attempts to modify the vector in-place will raise an
+    ``AttributeError``, but all other operations will return a new
+    ``FrozenVec2`` instance.
+
+    :parameters:
+        `x` : int or float :
+            The X coordinate of the vector.
+        `y`   : int or float :
+            The Y coordinate of the vector
+    """
+
+    __slots__ = _FrozenMixin.SLOT_EXTENSIONS
+
+    def __init__(self, x: float = 0.0, y: float = 0.0, z: float = 0.0) -> None:
+        super().__init__(x, y, z)
+
+
 class Vec4:
 
     __slots__ = 'x', 'y', 'z', 'w'
 
-    """A four-dimensional vector represented as X Y Z W coordinates.
+    """
+    A mutable four-dimensional vector represented as X Y Z W coordinates.
 
     :parameters:
         `x` : int or float :
@@ -685,6 +811,32 @@ class Vec4:
 
     def __repr__(self) -> str:
         return f"Vec4({self.x}, {self.y}, {self.z}, {self.w})"
+
+
+class FrozenVec4(_FrozenMixin, Vec4):
+    """
+    An immutable four-dimensional vector represented as X Y Z W coordinates.
+
+    Any attempts to modify the vector in-place will raise an
+    ``AttributeError``, but all other operations will return a new
+    ``FrozenVec4`` instance.
+
+    :parameters:
+        `x` : int or float :
+            The X coordinate of the vector.
+        `y`   : int or float :
+            The Y coordinate of the vector.
+        `z`   : int or float :
+            The Z coordinate of the vector.
+        `w`   : int or float :
+            The W coordinate of the vector.
+
+   """
+
+    __slots__ = _FrozenMixin.SLOT_EXTENSIONS
+
+    def __init__(self, x: float = 0.0, y: float = 0.0, z: float = 0.0, w: float = 0.0) -> None:
+        super().__init__(x, y, z, w)
 
 
 class Mat3(Tuple[float, float, float, float, float, float, float, float, float]):
