@@ -70,29 +70,35 @@ class _FrozenMixin:
     Successive yield statements in `__iter__` for each element are
     sufficient.
 
-    For convenience and safety, subclasses can use ``_FrozenMixin``'s
+    For convenience and safety, base classes can use ``_FrozenMixin``'s
     ``SLOT_EXTENSIONS`` class variable to set their ``__slots__``
     class variables to ensure they work properly::
+         class BaseType():
+             __slots__ = ('x', 'y') + _FrozenMixin.SLOT_EXTENSIONS
+
+         ...
 
          class FrozenType(_FrozenMixin, BaseType):
+             # no slots needed, just inherit from base type
 
-             __slots__ = _FrozenMixin.SLOT_EXTENSIONS
-             ...
+             def __init__(x: float = 0.0, y: float = 0.0):
+                super().__init__(x, y)
 
-    This must be done on the subclass because Python allows only a
-    single parent class to define or extend slots. Attempting to specify
-    slots in more than one parent class will raise a ``TypeError`` that
-    mentions a layout conflict. For more information, please see the
+
+    The current state of things may be suboptimal, but it avoids issues
+    with Python's slot rules to get unit tests written to test for
+    behavior. If you can optimize the classes and pass the unit tests,
+    please make a PR! For more information on the complexities of
+    slots, please see the
     `relevant Python documentation <https://docs.python.org/3/reference/datamodel.html#notes-on-using-slots>`_.
     """
 
-    # Use this to set the
+    # Used to help build the slots for vector base classes
     SLOT_EXTENSIONS = '_hash', '_frozen'
 
     _frozen = False  # ugly way to provide an initial False value
 
     def __init__(self, *args, **kwargs):
-        self._frozen = False
         super().__init__(*args, **kwargs)
 
         # Hash value is computed lazily in case vectors are only being
@@ -127,7 +133,7 @@ class _FrozenMixin:
 
 class Vec2:
 
-    __slots__ = 'x', 'y'
+    __slots__ = ('x', 'y') + _FrozenMixin.SLOT_EXTENSIONS
 
     """
     A mutable 2-dimensional vector represented as an X Y coordinate pair.
@@ -163,16 +169,16 @@ class Vec2:
         return (self.x, self.y)[item]
 
     def __add__(self, other: Vec2) -> Vec2:
-        return Vec2(self.x + other.x, self.y + other.y)
+        return self.__class__(self.x + other.x, self.y + other.y)
 
     def __sub__(self, other: Vec2) -> Vec2:
-        return Vec2(self.x - other.x, self.y - other.y)
+        return self.__class__(self.x - other.x, self.y - other.y)
 
     def __mul__(self, other: Vec2) -> Vec2:
-        return Vec2(self.x * other.x, self.y * other.y)
+        return self.__class__(self.x * other.x, self.y * other.y)
 
     def __truediv__(self, other: Vec2) -> Vec2:
-        return Vec2(self.x / other.x, self.y / other.y)
+        return self.__class__(self.x / other.x, self.y / other.y)
 
     def __abs__(self) -> float:
         return _math.sqrt(self.x ** 2 + self.y ** 2)
@@ -284,8 +290,9 @@ class Vec2:
         :returns: A new interpolated vector.
         :rtype: Vec2
         """
-        return Vec2(self.x + (alpha * (other.x - self.x)),
-                    self.y + (alpha * (other.y - self.y)))
+        return self.__class__(
+            self.x + (alpha * (other.x - self.x)),
+            self.y + (alpha * (other.y - self.y)))
 
     def scale(self, value: float) -> Vec2:
         """Multiply the vector by a scalar value.
@@ -373,7 +380,7 @@ class Vec2:
             ) from None
 
     def __repr__(self) -> str:
-        return f"Vec2({self.x}, {self.y})"
+        return f"{self.__class__.__name__}({self.x}, {self.y})"
 
 
 class FrozenVec2(_FrozenMixin, Vec2):
@@ -399,15 +406,13 @@ class FrozenVec2(_FrozenMixin, Vec2):
 
     """
 
-    slots__ = _FrozenMixin.SLOT_EXTENSIONS
-
     def __init__(self, x: float = 0.0, y: float = 0.0) -> None:
         super().__init__(x, y)
 
 
 class Vec3:
 
-    __slots__ = 'x', 'y', 'z'
+    __slots__ = ('x', 'y', 'z') + _FrozenMixin.SLOT_EXTENSIONS
 
     """
     A mutable 3-dimensional vector represented as X Y Z coordinates.
@@ -457,16 +462,16 @@ class Vec3:
         return self.__abs__()
 
     def __add__(self, other: Vec3) -> Vec3:
-        return Vec3(self.x + other.x, self.y + other.y, self.z + other.z)
+        return self.__class__(self.x + other.x, self.y + other.y, self.z + other.z)
 
     def __sub__(self, other: Vec3) -> Vec3:
-        return Vec3(self.x - other.x, self.y - other.y, self.z - other.z)
+        return self.__class__(self.x - other.x, self.y - other.y, self.z - other.z)
 
     def __mul__(self, other: Vec3) -> Vec3:
-        return Vec3(self.x * other.x, self.y * other.y, self.z * other.z)
+        return self.__class__(self.x * other.x, self.y * other.y, self.z * other.z)
 
     def __truediv__(self, other: Vec3) -> Vec3:
-        return Vec3(self.x / other.x, self.y / other.y, self.z / other.z)
+        return self.__class__(self.x / other.x, self.y / other.y, self.z / other.z)
 
     def __abs__(self) -> float:
         return _math.sqrt(self.x ** 2 + self.y ** 2 + self.z ** 2)
@@ -558,9 +563,10 @@ class Vec3:
         :returns: A new interpolated vector.
         :rtype: Vec3
         """
-        return Vec3(self.x + (alpha * (other.x - self.x)),
-                    self.y + (alpha * (other.y - self.y)),
-                    self.z + (alpha * (other.z - self.z)))
+        return self.__class__(
+            self.x + (alpha * (other.x - self.x)),
+            self.y + (alpha * (other.y - self.y)),
+            self.z + (alpha * (other.z - self.z)))
 
     def scale(self, value: float) -> Vec3:
         """Multiply the vector by a scalar value.
@@ -626,7 +632,7 @@ class Vec3:
             ) from None
 
     def __repr__(self) -> str:
-        return f"Vec3({self.x}, {self.y}, {self.z})"
+        return f"{self.__class__.__name__}({self.x}, {self.y}, {self.z})"
 
 
 class FrozenVec3(_FrozenMixin, Vec3):
@@ -651,15 +657,13 @@ class FrozenVec3(_FrozenMixin, Vec3):
             The Y coordinate of the vector
     """
 
-    __slots__ = _FrozenMixin.SLOT_EXTENSIONS
-
     def __init__(self, x: float = 0.0, y: float = 0.0, z: float = 0.0) -> None:
         super().__init__(x, y, z)
 
 
 class Vec4:
 
-    __slots__ = 'x', 'y', 'z', 'w'
+    __slots__ = ('x', 'y', 'z', 'w') + _FrozenMixin.SLOT_EXTENSIONS
 
     """
     A mutable four-dimensional vector represented as X Y Z W coordinates.
@@ -703,16 +707,16 @@ class Vec4:
         return 4
 
     def __add__(self, other: Vec4) -> Vec4:
-        return Vec4(self.x + other.x, self.y + other.y, self.z + other.z, self.w + other.w)
+        return self.__class__(self.x + other.x, self.y + other.y, self.z + other.z, self.w + other.w)
 
     def __sub__(self, other: Vec4) -> Vec4:
-        return Vec4(self.x - other.x, self.y - other.y, self.z - other.z, self.w - other.w)
+        return self.__class__(self.x - other.x, self.y - other.y, self.z - other.z, self.w - other.w)
 
     def __mul__(self, other: Vec4) -> Vec4:
-        return Vec4(self.x * other.x, self.y * other.y, self.z * other.z, self.w * other.w)
+        return self.__class__(self.x * other.x, self.y * other.y, self.z * other.z, self.w * other.w)
 
     def __truediv__(self, other: Vec4) -> Vec4:
-        return Vec4(self.x / other.x, self.y / other.y, self.z / other.z, self.w / other.w)
+        return self.__class__(self.x / other.x, self.y / other.y, self.z / other.z, self.w / other.w)
 
     def __abs__(self) -> float:
         return _math.sqrt(self.x ** 2 + self.y ** 2 + self.z ** 2 + self.w ** 2)
@@ -761,10 +765,11 @@ class Vec4:
         :returns: A new interpolated vector.
         :rtype: Vec4
         """
-        return Vec4(self.x + (alpha * (other.x - self.x)),
-                    self.y + (alpha * (other.y - self.y)),
-                    self.z + (alpha * (other.z - self.z)),
-                    self.w + (alpha * (other.w - self.w)))
+        return self.__class__(
+            self.x + (alpha * (other.x - self.x)),
+            self.y + (alpha * (other.y - self.y)),
+            self.z + (alpha * (other.z - self.z)),
+            self.w + (alpha * (other.w - self.w)))
 
     def scale(self, value: float) -> Vec4:
         """Multiply the vector by a scalar value.
@@ -810,7 +815,7 @@ class Vec4:
             ) from None
 
     def __repr__(self) -> str:
-        return f"Vec4({self.x}, {self.y}, {self.z}, {self.w})"
+        return f"{self.__class__.__name__}({self.x}, {self.y}, {self.z}, {self.w})"
 
 
 class FrozenVec4(_FrozenMixin, Vec4):
@@ -832,8 +837,6 @@ class FrozenVec4(_FrozenMixin, Vec4):
             The W coordinate of the vector.
 
    """
-
-    __slots__ = _FrozenMixin.SLOT_EXTENSIONS
 
     def __init__(self, x: float = 0.0, y: float = 0.0, z: float = 0.0, w: float = 0.0) -> None:
         super().__init__(x, y, z, w)
