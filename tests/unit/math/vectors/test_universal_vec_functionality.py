@@ -3,7 +3,12 @@ Test behavior expected of all vector classes.
 """
 
 import pytest
-from . import ALL_VEC_PAIRINGS, ALL_VEC_LENGTHS, ALL_VEC_TYPES, externalize_to_operator_method
+from . import (
+    ALL_VEC_PAIRINGS,
+    ALL_VEC_PAIRINGS_DICT,
+    ALL_VEC_LENGTHS,
+    externalize_to_operator_method
+)
 
 from operator import add, sub, mul, truediv, neg
 
@@ -26,31 +31,67 @@ def vec_pairing(request):
     return request.param
 
 
-@pytest.mark.parametrize("vec_type", ALL_VEC_TYPES)
-def test_repr(vec_type):
-    num_dimensions = ALL_VEC_LENGTHS[vec_type]
-    coords = [float(i) for i in range(1, num_dimensions + 1)]
-    v = vec_type(*coords)
-    assert repr(v) == f"{vec_type.__name__}({', '.join(map(str, coords))})"
+@pytest.fixture
+def vec_type(vec_pairing):
+    return vec_pairing[0]
+
+
+@pytest.fixture
+def vec_length(vec_type):
+    return ALL_VEC_LENGTHS[vec_type]
+
+
+@pytest.fixture
+def vec_coords(vec_length):
+    return tuple((0.0 for n in range(vec_length)))
+
+
+@pytest.fixture
+def vec_instance(vec_type, vec_coords):
+    return vec_type(*vec_coords)
+
+
+@pytest.fixture
+def right_vec_type(vec_type):
+    return ALL_VEC_PAIRINGS_DICT[vec_type]
+
+
+@pytest.fixture
+def right_vec_length(right_vec_type):
+    return ALL_VEC_LENGTHS[right_vec_type]
+
+
+@pytest.fixture
+def right_vec_coords(vec_length):
+    # use all ones to avoid dividing by zero for truediv operator
+    return tuple((1.0 * (n + 1) for n in range(vec_length)))
+
+
+@pytest.fixture
+def right_vec_instance(right_vec_type, right_vec_coords):
+    return right_vec_type(*right_vec_coords)
+
+
+def test_repr(right_vec_type, right_vec_coords, right_vec_instance):
+    result = repr(right_vec_instance)
+    expected = f"{right_vec_type.__name__}({', '.join(map(str, right_vec_coords))})"
+    assert result == expected
 
 
 # AKA the "freeze from the left rule" or left-hand typing rule in doc
-@pytest.mark.parametrize("left_hand_type,right_hand_type", ALL_VEC_PAIRINGS)
 def test_binary_vec_ops_return_vec_of_same_type_as_left_operand(
-        left_hand_type, right_hand_type,
+        vec_instance, right_vec_instance,
         binary_vec_operator_returning_new
 ):
-    num_dimensions = ALL_VEC_LENGTHS[left_hand_type]
-
-    left = left_hand_type(*[0.0 for n in range(num_dimensions)])
-    # use all ones to avoid dividing by zero for truediv operator
-    right = right_hand_type(*[1.0 for n in range(num_dimensions)])
-    result = binary_vec_operator_returning_new(left, right)
-    assert isinstance(result, left_hand_type)
+    result = binary_vec_operator_returning_new(vec_instance, right_vec_instance)
+    assert isinstance(result, type(vec_instance))
 
 
-@pytest.mark.parametrize("vec_type", ALL_VEC_TYPES)
-def test_unary_ops_return_vec_of_same_type_as_instance(vec_type, unary_vec_operator_returning_new):
-    result = unary_vec_operator_returning_new(vec_type())
+def test_unary_ops_return_vec_of_same_type_as_instance(
+        vec_type,
+        vec_instance,
+        unary_vec_operator_returning_new
+):
+    result = unary_vec_operator_returning_new(vec_instance)
     assert isinstance(result, vec_type)
 

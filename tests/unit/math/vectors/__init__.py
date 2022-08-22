@@ -27,6 +27,7 @@ VEC2_PAIRINGS = generate_all_pairings(VEC2_TYPES)
 VEC3_PAIRINGS = generate_all_pairings(VEC3_TYPES)
 VEC4_PAIRINGS = generate_all_pairings(VEC4_TYPES)
 ALL_VEC_PAIRINGS = VEC2_PAIRINGS + VEC3_PAIRINGS + VEC4_PAIRINGS
+ALL_VEC_PAIRINGS_DICT = {k: v for k, v in ALL_VEC_PAIRINGS}
 
 
 def externalize_instance_method(method_name: str) -> Callable:
