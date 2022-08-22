@@ -184,10 +184,10 @@ class Vec2:
         return _math.sqrt(self.x ** 2 + self.y ** 2)
 
     def __neg__(self) -> Vec2:
-        return Vec2(-self.x, -self.y)
+        return self.__class__(-self.x, -self.y)
 
     def __round__(self, ndigits: int | None = None) -> Vec2:
-        return Vec2(*(round(v, ndigits) for v in self))
+        return self.__class__(*(round(v, ndigits) for v in self))
 
     def __radd__(self, other: Vec2 | int) -> Vec2:
         """Reverse add. Required for functionality with sum()
@@ -477,10 +477,10 @@ class Vec3:
         return _math.sqrt(self.x ** 2 + self.y ** 2 + self.z ** 2)
 
     def __neg__(self) -> Vec3:
-        return Vec3(-self.x, -self.y, -self.z)
+        return self.__class__(-self.x, -self.y, -self.z)
 
     def __round__(self, ndigits: int | None = None) -> Vec3:
-        return Vec3(*(round(v, ndigits) for v in self))
+        return self.__class__(*(round(v, ndigits) for v in self))
 
     def __radd__(self, other: Vec3 | int) -> Vec3:
         """Reverse add. Required for functionality with sum()
@@ -722,10 +722,10 @@ class Vec4:
         return _math.sqrt(self.x ** 2 + self.y ** 2 + self.z ** 2 + self.w ** 2)
 
     def __neg__(self) -> Vec4:
-        return Vec4(-self.x, -self.y, -self.z, -self.w)
+        return self.__class__(-self.x, -self.y, -self.z, -self.w)
 
     def __round__(self, ndigits: int | None = None) -> Vec4:
-        return Vec4(*(round(v, ndigits) for v in self))
+        return self.__class__(*(round(v, ndigits) for v in self))
 
     def __radd__(self, other: Vec4 | int) -> Vec4:
         if other == 0:

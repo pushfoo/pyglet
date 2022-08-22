@@ -5,7 +5,7 @@ Test behavior expected of all vector classes.
 import pytest
 from . import ALL_VEC_PAIRINGS, ALL_VEC_LENGTHS, ALL_VEC_TYPES, externalize_to_operator_method
 
-from operator import add, sub, mul, truediv
+from operator import add, sub, mul, truediv, neg
 
 
 @pytest.fixture(params=[
@@ -13,6 +13,16 @@ from operator import add, sub, mul, truediv
     externalize_to_operator_method('lerp', 0.5),
 ])
 def binary_vec_operator_returning_new(request):
+    return request.param
+
+
+@pytest.fixture(params=[neg, round])
+def unary_vec_operator_returning_new(request):
+    return request.param
+
+
+@pytest.fixture(params=ALL_VEC_PAIRINGS)
+def vec_pairing(request):
     return request.param
 
 
@@ -26,7 +36,7 @@ def test_repr(vec_type):
 
 # AKA the "freeze from the left rule" or left-hand typing rule in doc
 @pytest.mark.parametrize("left_hand_type,right_hand_type", ALL_VEC_PAIRINGS)
-def test_binary_ops_return_vec_of_same_type_as_left_operand(
+def test_binary_vec_ops_return_vec_of_same_type_as_left_operand(
         left_hand_type, right_hand_type,
         binary_vec_operator_returning_new
 ):
@@ -38,4 +48,9 @@ def test_binary_ops_return_vec_of_same_type_as_left_operand(
     result = binary_vec_operator_returning_new(left, right)
     assert isinstance(result, left_hand_type)
 
+
+@pytest.mark.parametrize("vec_type", ALL_VEC_TYPES)
+def test_unary_ops_return_vec_of_same_type_as_instance(vec_type, unary_vec_operator_returning_new):
+    result = unary_vec_operator_returning_new(vec_type())
+    assert isinstance(result, vec_type)
 
