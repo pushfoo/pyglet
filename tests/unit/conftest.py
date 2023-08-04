@@ -1,30 +1,28 @@
 import importlib
 import inspect
 import re
-from typing import Tuple, Callable, Iterable, Union, Dict, Any
-from unittest.mock import MagicMock
+from typing import Tuple, Callable, Iterable, Union
+from unittest.mock import NonCallableMagicMock
 
 from pytest import fixture
 
 from pyglet.graphics.shader import ShaderProgram
+from tests.base.mock_helpers import mock_vertex_list, mock_indexed_vertex_list
 
 
 @fixture
-def raw_dummy_shader():
-    program = MagicMock(spec=ShaderProgram)
-    program.attributes = {}
+def raw_dummy_shader_program():
+    program = NonCallableMagicMock(spec=ShaderProgram)
+    program.configure_mock(
+        vertex_list=mock_vertex_list,
+        indexed_vertex_list=mock_indexed_vertex_list
+    )
+
     return program
 
 
 @fixture
-def dummy_shader_with_attributes(raw_dummy_shader, shader_attributes: Dict[str, Any]):
-    for attr_name, attr_value in shader_attributes:
-        setattr(raw_dummy_shader, attr_name, attr_value)
-    return raw_dummy_shader
-
-
-@fixture
-def get_dummy_shader_program(raw_dummy_shader):
+def get_dummy_shader_program(raw_dummy_shader_program):
     """
     Provide a dummy getter to monkeypatch getters for default shaders.
 
@@ -49,7 +47,7 @@ def get_dummy_shader_program(raw_dummy_shader):
     """
     # A named function instead of a lambda for clarity in debugger views.
     def _get_dummy_shader_program(*args, **kwargs):
-        return raw_dummy_shader
+        return raw_dummy_shader_program
 
     return _get_dummy_shader_program
 

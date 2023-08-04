@@ -2,10 +2,8 @@ from unittest.mock import Mock, NonCallableMock
 
 import pytest
 
-from pyglet.graphics.vertexdomain import IndexedVertexList
 from pyglet.text import layout, caret
 from pyglet.text.document import UnformattedDocument
-from tests.base.mock_helpers import FakeCtypesArray
 
 
 @pytest.fixture(autouse=True)
@@ -13,27 +11,17 @@ def disable_automatic_caret_blinking(monkeypatch):
     monkeypatch.setattr(caret, 'clock', Mock(spec=caret.clock))
 
 
-# Brittle tangle of mocks due to tightly coupled Caret/Layout design
 @pytest.fixture
-def mock_layout(raw_dummy_shader):
-
-    # Rename to be closer to implementation code
-    program = raw_dummy_shader
-
-    # Allow the shader program to create a mock vertex list on demand
-    def _fake_vertex_list_method(count, mode, batch=None, group=None, colors=None):
-        vertex_list = NonCallableMock(spec=IndexedVertexList)
-        vertex_list.colors = FakeCtypesArray(colors[1])
-        return vertex_list
-
-    program.vertex_list = _fake_vertex_list_method
-    # Create layout mock using a caret-compatible layout classes
-    _layout = NonCallableMock(spec=layout.IncrementalTextLayout)
+def mock_layout(raw_dummy_shader_program):
+    """Create a mock layout using compatible types as spec references."""
 
     group = NonCallableMock(spec=layout.IncrementalTextDecorationGroup)
-    group.attach_mock(program, 'program')
-    _layout.attach_mock(group, 'foreground_decoration_group')
+    group.attach_mock(raw_dummy_shader_program, 'program')
 
+    # This *MUST* be IncrementalTextLayout since Caret relies on
+    # push_handlers, which doesn't exist on any other layout class!
+    _layout = NonCallableMock(spec=layout.IncrementalTextLayout)
+    _layout.attach_mock(group, 'foreground_decoration_group')
     _layout.attach_mock(NonCallableMock(spec=UnformattedDocument), 'document')
 
     return _layout
