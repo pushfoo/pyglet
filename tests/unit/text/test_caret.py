@@ -4,6 +4,7 @@ import pytest
 
 from pyglet.graphics.vertexdomain import IndexedVertexList
 from pyglet.text import layout, caret
+from pyglet.text.document import UnformattedDocument
 from tests.base.mock_helpers import FakeCtypesArray
 
 
@@ -19,13 +20,6 @@ def mock_layout(raw_dummy_shader):
     # Rename to be closer to implementation code
     program = raw_dummy_shader
 
-    # Create layout mock
-    _layout = NonCallableMock(spec=layout.TextLayout)
-    _layout.foreground_decoration_group = NonCallableMock()
-
-    _layout.attach_mock(Mock(), 'push_handlers')
-    _layout.foreground_decoration_group.attach_mock(program, 'program')
-
     # Allow the shader program to create a mock vertex list on demand
     def _fake_vertex_list_method(count, mode, batch=None, group=None, colors=None):
         vertex_list = NonCallableMock(spec=IndexedVertexList)
@@ -33,6 +27,14 @@ def mock_layout(raw_dummy_shader):
         return vertex_list
 
     program.vertex_list = _fake_vertex_list_method
+    # Create layout mock using a caret-compatible layout classes
+    _layout = NonCallableMock(spec=layout.IncrementalTextLayout)
+
+    group = NonCallableMock(spec=layout.IncrementalTextDecorationGroup)
+    group.attach_mock(program, 'program')
+    _layout.attach_mock(group, 'foreground_decoration_group')
+
+    _layout.attach_mock(NonCallableMock(spec=UnformattedDocument), 'document')
 
     return _layout
 
