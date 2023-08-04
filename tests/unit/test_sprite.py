@@ -1,10 +1,18 @@
 from typing import Tuple
 from unittest.mock import MagicMock
+
 import pytest
+
 import pyglet
+from pyglet.image import ImageData, Texture
 
 
-# Using the blanket patching method breaks sprites at the moment
+# This approach breaks many of these tests for unclear reasons
+# @pytest.fixture(autouse=True)
+# def monkeypatch_all_shaders():
+#     return ("pyglet.sprite",)
+
+
 @pytest.fixture(autouse=True)
 def monkeypatch_default_sprite_shader(monkeypatch, get_dummy_shader_program):
     """Use a dummy shader when testing non-drawing functionality"""
@@ -23,7 +31,11 @@ def sprite():
     The lack of image data doesn't matter because these tests never touch
     a real GL context which would require it.
     """
-    sprite = pyglet.sprite.Sprite(MagicMock(), x=1, y=2, z=3)
+    img_dims = dict(width=10, height=10)
+    image_mock = MagicMock(set_spec=ImageData, **img_dims)
+    image_mock.get_texture.return_value = MagicMock(set_spec=Texture, **img_dims)
+
+    sprite = pyglet.sprite.Sprite(image_mock, x=1.0, y=2.0, z=3.0)
     sprite.rotation = 90
 
     return sprite
