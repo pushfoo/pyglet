@@ -1,4 +1,7 @@
-from typing import Tuple
+import importlib
+import inspect
+import re
+from typing import Tuple, Callable, Iterable, Union
 from unittest import mock
 
 from pytest import fixture
@@ -19,12 +22,12 @@ def get_dummy_shader_program():
     in module-specific single test files or conftest.py instances for
     test modules::
 
-        # Example from ./shapes/conftest.py
+        # Example from ./test_sprite.py
 
         @fixture(autouse=True)  # Force this to be used for every test in the module
-        def monkeypatch_default_shape_shader(monkeypatch, get_dummy_shader_program):
+        def monkeypatch_default_sprite_shader(monkeypatch, get_dummy_shader_program):
             monkeypatch.setattr(
-                'pyglet.shapes.get_default_shader',
+                'pyglet.sprite.get_default_shader',
                  get_dummy_shader_program)
 
     """
@@ -33,6 +36,69 @@ def get_dummy_shader_program():
         return mock.MagicMock()
 
     return _get_dummy_shader_program
+
+
+# Identify module elements which are likely to return shaders.
+SHADER_GETTER_PATTERN = re.compile(r"^get(_[a-zA-Z0-9]+)*_shader$")
+
+
+def is_shader_getter(c: Callable) -> bool:
+    """Returns true if an item appears to be a shader getter.
+
+    Args:
+       c: A callable to evaluate
+    Returns:
+       Whether an item appears to be a shader getter.
+    """
+    if not (hasattr(c, "__name__") and SHADER_GETTER_PATTERN.fullmatch(c.__name__)):
+        return False
+
+    if not callable(c):
+        raise TypeError(f"{c} is not callable despite being named like a shader getter")
+
+    return True
+
+
+# Easy blanket replacement of shaders
+def monkeypatch_all_shaders(dummy_shaders_for_modules: Union[Iterable[str], str], monkeypatch, get_dummy_shader_program):
+    """Monkeypatch all shaders in the specified modules.
+
+    Specify a `modules_to_path` fixture in either a conftest.py or test file
+    to use no-op shaders during unit tests.
+
+    Any callable member of a named module which has a name of get*_shader
+    will be replaced with the dummy shader program getter during tests.
+
+    Example usage::
+
+        # in a test file dealing with sprites
+        @pytest.fixture
+        def dummy_shaders_for_modules() -> str:
+            return "pyglet.sprite"
+
+        # multiple modules
+        @pytest.fixture
+        def dummy_shaders_for_modules() -> Tuple[str]:
+            return (
+                "pyglet.sprite",
+                "pyglet.text.layout"
+            )
+
+    Args:
+        dummy_shaders_for_modules: A string or iterable of strings representing the target modules.
+        monkeypatch: the pytest monkeypatch fixture.
+        get_dummy_shader_program: The default dummy shader getter.
+    """
+    if isinstance(dummy_shaders_for_modules, str):
+        dummy_shaders_for_modules = [dummy_shaders_for_modules]
+
+    # Iterate over modules
+    for module_name in dummy_shaders_for_modules:
+        module = importlib.import_module(module_name)
+
+        # Monkeypatch anything which looks like a shader getter
+        for member_name, member in inspect.getmembers(module, is_shader_getter):
+            monkeypatch.setattr(f"{module_name}.{member_name}", get_dummy_shader_program)
 
 
 # Color constants & fixtures for use with Shapes, UI elements, etc.

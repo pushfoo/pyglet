@@ -4,6 +4,7 @@ import pytest
 import pyglet
 
 
+# Using the blanket patching method breaks sprites at the moment
 @pytest.fixture(autouse=True)
 def monkeypatch_default_sprite_shader(monkeypatch, get_dummy_shader_program):
     """Use a dummy shader when testing non-drawing functionality"""
