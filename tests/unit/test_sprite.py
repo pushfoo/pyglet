@@ -7,16 +7,9 @@ import pyglet
 from pyglet.image import ImageData, Texture
 
 
-# This approach breaks many of these tests for unclear reasons
-# @pytest.fixture(autouse=True)
-# def monkeypatch_all_shaders():
-#     return ("pyglet.sprite",)
-
-
 @pytest.fixture(autouse=True)
-def monkeypatch_default_sprite_shader(monkeypatch, get_dummy_shader_program):
-    """Use a dummy shader when testing non-drawing functionality"""
-    monkeypatch.setattr('pyglet.sprite.get_default_shader', get_dummy_shader_program)
+def monkeypatch_all_shaders():
+    return ("pyglet.sprite",)
 
 
 @pytest.fixture
