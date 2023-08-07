@@ -8,8 +8,8 @@ from pyglet.image import ImageData, Texture
 
 
 @pytest.fixture(autouse=True)
-def monkeypatch_all_shaders():
-    return ("pyglet.sprite",)
+def monkeypatch_shaders_in() -> str:
+    return "pyglet.sprite"
 
 
 @pytest.fixture

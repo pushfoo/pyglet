@@ -12,11 +12,11 @@ def disable_automatic_caret_blinking(monkeypatch):
 
 
 @pytest.fixture
-def mock_layout(raw_dummy_shader_program):
+def mock_layout(generic_dummy_shader_program):
     """Create a mock layout using compatible types as spec references."""
 
     group = NonCallableMock(spec=layout.IncrementalTextDecorationGroup)
-    group.attach_mock(raw_dummy_shader_program, 'program')
+    group.attach_mock(generic_dummy_shader_program, 'program')
 
     # This *MUST* be IncrementalTextLayout since Caret relies on
     # push_handlers, which doesn't exist on any other layout class!
