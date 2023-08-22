@@ -7,7 +7,11 @@ from pytest import fixture
 
 from pyglet import gl
 from pyglet.graphics.shader import ShaderProgram
-from tests.base.mock_helpers import mock_vertex_list, mock_indexed_vertex_list, DummyShader, DummyShaderProgram
+from tests.base.mock_helpers import (
+    DummyShader,
+    DummyShaderProgram,
+    get_shallow_shader_mock
+)
 
 
 @fixture
@@ -16,13 +20,7 @@ def generic_dummy_shader_program():
 
     It does not provide any parsing services.
     """
-    program = NonCallableMagicMock(spec=ShaderProgram)
-    program.configure_mock(
-        vertex_list=mock_vertex_list,
-        indexed_vertex_list=mock_indexed_vertex_list
-    )
-
-    return program
+    return get_shallow_shader_mock()
 
 
 @fixture
@@ -56,7 +54,7 @@ def dummy_shader_getter(generic_dummy_shader_program: ShaderProgram):
     """
     # A named function instead of a lambda for clarity in debugger views.
     def get_dummy_shader(*args, **kwargs):
-        return generic_dummy_shader_program
+        return get_shallow_shader_mock()
 
     return get_dummy_shader
 

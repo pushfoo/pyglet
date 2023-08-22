@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 from collections import UserList
-from typing import TypeVar, overload, Tuple, Optional, Iterable, Dict, Union, Any
+from functools import partial
+from typing import TypeVar, overload, Tuple, Optional, Iterable, Dict, Union, Any, Mapping
 from unittest.mock import NonCallableMock
 
 from pyglet.graphics import Group, Batch
@@ -137,6 +138,10 @@ def mock_vertex_list(
     return vertex_list
 
 
+def get_mock_vertex_list_builder(base_shader_attributes: Dict):
+    return partial(mock_vertex_list, base_shader_attributes)
+
+
 def mock_indexed_vertex_list(
         base_shader_attributes: Dict,
         count: int,
@@ -160,9 +165,38 @@ def mock_indexed_vertex_list(
     return new_list
 
 
+def get_mock_indexed_vertex_list_builder(base_shader_attributes: Dict):
+    return partial(mock_indexed_vertex_list, base_shader_attributes)
+
+
 class ShaderIDMixin(SharedOrderBase):
     """Auto-incrementing shader ID mix-in."""
     pass
+
+
+def get_shallow_shader_mock() -> NonCallableMock:
+    """
+    Returns a very low fidelity shader mock.
+
+    This exists for a few edge cases where it's not worth caring about
+    accuracy. In most cases, you'll be better off with either of the
+    following:
+
+    * Shader auto-patching through the monkeypatch_all_shaders fixture
+    * Directly specifying source through the DummyShader and DummyShader
+      classes below.
+
+    Returns:
+        A NonCallableMock with vertex list creation methods.
+
+    """
+    program = NonCallableMock(spec=ShaderProgram)
+    program.configure_mock(
+        vertex_list=get_mock_vertex_list_builder({}),
+        indexed_vertex_list=get_mock_vertex_list_builder({})
+    )
+
+    return program
 
 
 class DummyShader(Shader, ShaderIDMixin):
@@ -232,6 +266,13 @@ class DummyShaderProgram(ShaderProgram, ShaderIDMixin):
             self._attributes,
             count, mode, indices, batch=batch, group=group, **data)
         return mock_indexed_list
+
+    @classmethod
+    def from_sources_and_types(cls, *source_and_types: Union[Iterable[Tuple[str, str]], Mapping[str, str]]):
+        """Allow easier manual creation of shaders"""
+        if isinstance(source_and_types, Mapping):
+            source_and_types = source_and_types.items()
+        return cls(*(DummyShader(*pair) for pair in source_and_types))
 
 
 if __name__ == "__main__":
