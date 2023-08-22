@@ -7,10 +7,6 @@ import pyglet
 from pyglet.image import ImageData, Texture
 
 
-@pytest.fixture(autouse=True)
-def monkeypatch_shaders_in() -> str:
-    return "pyglet.sprite"
-
 
 @pytest.fixture
 def sprite():
@@ -25,8 +21,12 @@ def sprite():
     a real GL context which would require it.
     """
     img_dims = dict(width=10, height=10)
+
+    texture_mock = MagicMock(set_spec=Texture, **img_dims)
+    texture_mock.tex_coords = (0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0)
+
     image_mock = MagicMock(set_spec=ImageData, **img_dims)
-    image_mock.get_texture.return_value = MagicMock(set_spec=Texture, **img_dims)
+    image_mock.get_texture.return_value = texture_mock
 
     sprite = pyglet.sprite.Sprite(image_mock, x=1.0, y=2.0, z=3.0)
     sprite.rotation = 90

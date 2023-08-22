@@ -1,20 +1,20 @@
-import importlib
-import inspect
 import re
-from typing import Tuple, Callable, Iterable, Union
+from typing import Tuple, Callable
 from unittest.mock import NonCallableMagicMock
 
+import pytest
 from pytest import fixture
 
+from pyglet import gl
 from pyglet.graphics.shader import ShaderProgram
-from tests.base.mock_helpers import mock_vertex_list, mock_indexed_vertex_list
+from tests.base.mock_helpers import mock_vertex_list, mock_indexed_vertex_list, DummyShader, DummyShaderProgram
 
 
 @fixture
 def generic_dummy_shader_program():
-    """A basic mock shader for when you only need basic GL attributes.
+    """A basic mock shader for when you don't need fine-grained accuracy.
 
-    It does not provide fine-grained control of attributes or uniforms.
+    It does not provide any parsing services.
     """
     program = NonCallableMagicMock(spec=ShaderProgram)
     program.configure_mock(
@@ -82,52 +82,25 @@ def is_shader_getter(c: Callable) -> bool:
     return True
 
 
-def monkeypatch_all_shaders(
-        monkeypatch_shaders_in: Union[Iterable[str], str],
-        monkeypatch,
-        dummy_shader_getter
-):
-    """Monkeypatch all shaders in the specified module(s).
+@pytest.fixture(autouse=True)
+def monkeypatch_all_shaders(monkeypatch):
+    """Monkeypatch shader classes and the GL context with mocks.
 
-    Declare a `monkeypatch_shaders_in` fixture in either a conftest.py
-    or test file to use no-op shaders during unit tests.
-
-    For each module string, every top-level member named get*_shader
-    will be monkeypatched with get_dummy_shader_program.
-
-    Example usage::
-
-        # in a test file dealing with sprites
-        @pytest.fixture
-        def dummy_shaders_for_modules() -> str:
-            return "pyglet.sprite"
-
-        # multiple modules
-        @pytest.fixture
-        def dummy_shaders_for_modules() -> Tuple[str]:
-            return (
-                "pyglet.sprite",
-                "pyglet.text.layout"
-            )
+    The dummy shader classes it substitutes automatically parse shader
+    source to create mock vertex list objects populated with appropriate
+    attributes.
 
     Args:
-        monkeypatch_shaders_in:
-            A string or iterable of strings representing the target modules.
-        monkeypatch:
-            The pytest monkeypatch fixture.
-        dummy_shader_getter:
-            The default dummy shader getter.
+        monkeypatch: pytest's built-in monkeypatch fixture.
     """
-    if isinstance(monkeypatch_shaders_in, str):
-        monkeypatch_shaders_in = [monkeypatch_shaders_in]
 
-    # Iterate over modules
-    for module_name in monkeypatch_shaders_in:
-        module = importlib.import_module(module_name)
+    def _patch_shader_part(name, class_):
+        monkeypatch.setattr(f"pyglet.graphics.shader.{name}", class_)
 
-        # Monkeypatch anything which looks like a shader getter
-        for member_name, member in inspect.getmembers(module, is_shader_getter):
-            monkeypatch.setattr(f"{module_name}.{member_name}", dummy_shader_getter)
+    _patch_shader_part("Shader", DummyShader)
+    _patch_shader_part("ShaderProgram", DummyShaderProgram)
+    monkeypatch.setattr("pyglet.gl.current_context", NonCallableMagicMock(gl.Context))
+
 
 
 # Color constants & fixtures for use with Shapes, UI elements, etc.
