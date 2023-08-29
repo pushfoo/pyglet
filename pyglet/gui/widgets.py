@@ -517,7 +517,7 @@ class TextEntry(WidgetBase):
     def on_key_press(self, symbol, modifiers):
         if not self._focus:
             return
-        if symbol == pyglet.window.key.A and modifiers & pyglet.window.key.MOD_CTRL:
+        if symbol == pyglet.window.key.A and modifiers & pyglet.window.key.MOD_ACCEL:
             self._caret.select_all()
 
     def on_text(self, text):
