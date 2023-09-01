@@ -165,5 +165,9 @@ class PygletTextView_Implementation:
     def moveToEndOfDocumentAndModifySelection_(self, sender):        # Mac OS X 10.6
         self._window.dispatch_event("on_text_motion_select", key.MOTION_END_OF_FILE)
 
+    @PygletTextView.method('v@')
+    def selectAll(self, sender):
+        self._window.dispatch_event("on_text_motion_select", key.MOTION_SELECT_ALL)
+
 
 PygletTextView = ObjCClass('PygletTextView')

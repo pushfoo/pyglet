@@ -37,7 +37,8 @@ _motion_map = {
     (key.BACKSPACE, False): key.MOTION_BACKSPACE,
     (key.DELETE, False): key.MOTION_DELETE,
     (key.C, True): key.MOTION_COPY,
-    (key.V, True): key.MOTION_PASTE
+    (key.V, True): key.MOTION_PASTE,
+    (key.A, True): key.MOTION_SELECT_ALL
 }
 
 
