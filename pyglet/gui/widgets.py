@@ -302,14 +302,13 @@ class Slider(WidgetBase):
             `group` : `~pyglet.graphics.Group`
                 Optional parent group of the slider.
         """
-        super().__init__(x, y, base.width, max(base.height, knob.height))
+        super().__init__(x, y, base.width, knob.height)
         self._edge = edge
         self._base_img = base
         self._knob_img = knob
         self._half_knob_width = knob.width / 2
         self._half_knob_height = knob.height / 2
         self._knob_img.anchor_y = knob.height / 2
-        self._knob_to_base_height_ratio = knob.height / base.height
 
         self._min_knob_x = x + edge
         self._max_knob_x = x + base.width - knob.width - edge
@@ -324,23 +323,10 @@ class Slider(WidgetBase):
         self._in_update = False
 
     def _update_position(self):
-        self._min_knob_x = self._x + self._edge
-        self._max_knob_x = self._x + self._base_spr.width - self._knob_spr.width - self._edge
         self._base_spr.position = self._x, self._y, 0
-        self._knob_spr.position = self._x + self._edge, self._y + self._base_spr.height / 2, 0
+        self._knob_spr.position = self._x + self._edge, self._y + self._base_img.height / 2, 0
         self.value = self._value
 
-    def on_resize(self, width, height):
-        super(Slider, self).on_resize(width, height)
-        self._base_spr.width = width
-        if self._knob_to_base_height_ratio > 1:
-            self._knob_spr.height = height
-            self._base_spr.height = height / self._knob_to_base_height_ratio
-        else:
-            self._base_spr.height = height
-            self._knob_spr.height = height * self._knob_to_base_height_ratio
-        self._update_position()
-        
     @property
     def value(self):
         return self._value
