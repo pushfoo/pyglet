@@ -514,12 +514,6 @@ class TextEntry(WidgetBase):
         self._layout.width, self._layout.height = width, height
         self._outline.width, self._outline.height = width + self._pad * 2, height + self._pad * 2
 
-    def on_key_press(self, symbol, modifiers):
-        if not self._focus:
-            return
-        if symbol == pyglet.window.key.A and modifiers & pyglet.window.key.MOD_ACCEL:
-            self._caret.select_all()
-
     def on_text(self, text):
         if not self.enabled:
             return
