@@ -509,11 +509,6 @@ class TextEntry(WidgetBase):
         else:
             self._set_focus(False)
 
-    def on_resize(self, width, height):
-        super(TextEntry, self).on_resize(width, height)
-        self._layout.width, self._layout.height = width, height
-        self._outline.width, self._outline.height = width + self._pad * 2, height + self._pad * 2
-
     def on_text(self, text):
         if not self.enabled:
             return
