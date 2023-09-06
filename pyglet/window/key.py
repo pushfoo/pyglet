@@ -232,6 +232,14 @@ MOTION_COPY              = 7
 MOTION_PASTE             = 8
 MOTION_SELECT_ALL        = 9
 
+# Specifies motions to be sent as on_text_motion_select
+# events by non-mac platforms rather than on_text_motion.
+# Mac relies on OS-level motion detection instead of a
+# hotkey map.
+SELECT_MOTIONS = frozenset((
+    MOTION_SELECT_ALL,
+))
+
 # Number pad
 NUMLOCK       = 0xff7f
 NUM_SPACE     = 0xff80
