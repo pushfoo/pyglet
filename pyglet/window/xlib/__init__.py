@@ -1073,7 +1073,7 @@ class XlibWindow(BaseWindow):
                     modifiers_ctrl = modifiers & (key.MOD_CTRL | key.MOD_ALT)
                     motion = self._event_text_motion(symbol, modifiers)
                     if motion:
-                        if modifiers & key.MOD_SHIFT:
+                        if modifiers & key.MOD_SHIFT or motion in key.SELECT_MOTIONS:
                             self.dispatch_event('on_text_motion_select', motion)
                         else:
                             self.dispatch_event('on_text_motion', motion)
@@ -1103,7 +1103,7 @@ class XlibWindow(BaseWindow):
                 if _can_detect_autorepeat:
                     self.pressed_keys.add(symbol)
             if motion:
-                if modifiers & key.MOD_SHIFT:
+                if modifiers & key.MOD_SHIFT or motion in key.SELECT_MOTIONS:
                     self.dispatch_event('on_text_motion_select', motion)
                 else:
                     self.dispatch_event('on_text_motion', motion)
