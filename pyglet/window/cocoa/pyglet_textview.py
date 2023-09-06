@@ -166,7 +166,7 @@ class PygletTextView_Implementation:
         self._window.dispatch_event("on_text_motion_select", key.MOTION_END_OF_FILE)
 
     @PygletTextView.method('v@')
-    def selectAll(self, sender):
+    def selectAll_(self, sender):
         self._window.dispatch_event("on_text_motion_select", key.MOTION_SELECT_ALL)
 
 
