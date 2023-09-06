@@ -240,10 +240,6 @@ class PushButton(WidgetBase):
             return
         self._sprite.image = self._hover_img if self._check_hit(x, y) else self._depressed_img
 
-    def on_resize(self, width, height):
-        super(PushButton, self).on_resize(width, height)
-        self._sprite.width = width
-        self._sprite.height = height
 
 PushButton.register_event_type('on_press')
 PushButton.register_event_type('on_release')
