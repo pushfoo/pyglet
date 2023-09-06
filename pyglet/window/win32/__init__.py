@@ -783,7 +783,7 @@ class Win32Window(BaseWindow):
         ctrl = modifiers & key.MOD_CTRL != 0
         if (symbol, ctrl) in _motion_map and msg not in (WM_KEYUP, WM_SYSKEYUP):
             motion = _motion_map[symbol, ctrl]
-            if modifiers & key.MOD_SHIFT:
+            if modifiers & key.MOD_SHIFT or motion in key.SELECT_MOTIONS:
                 self.dispatch_event('on_text_motion_select', motion)
             else:
                 self.dispatch_event('on_text_motion', motion)
