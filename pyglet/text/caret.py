@@ -386,6 +386,7 @@ class Caret:
         self._next_attributes.clear()
 
     def select_all(self) -> None:
+        """Select all text in this text entry field."""
         self._mark = 0
         self._position = len(self._layout.document.text)
         self._update()
