@@ -69,10 +69,6 @@ class WidgetBase(EventDispatcher):
         :type: int
         """
         return self._width
-    
-    @width.setter
-    def width(self, value):
-        self.on_resize(value, self._height)
 
     @property
     def height(self):
@@ -81,18 +77,6 @@ class WidgetBase(EventDispatcher):
         :type: int
         """
         return self._height
-    
-    @height.setter
-    def height(self, value):
-        self.on_resize(self._width, value)
-
-    @property
-    def size(self):
-        return (self.width, self.height)
-
-    @size.setter
-    def size(self, size_value):
-        self.on_resize(size_value[0], size_value[1])
 
     @property
     def aabb(self):
@@ -119,10 +103,6 @@ class WidgetBase(EventDispatcher):
     @value.setter
     def value(self, value):
         raise NotImplementedError("Value depends on control type!")
-    
-    def on_resize(self, width, height):
-        self._width = width
-        self._height = height
 
     def _check_hit(self, x, y):
         return self._x < x < self._x + self._width and self._y < y < self._y + self._height
@@ -152,12 +132,6 @@ class WidgetBase(EventDispatcher):
         pass
 
     def on_text_motion_select(self, motion):
-        pass
-
-    def on_key_press(self, symbol, modifiers):
-        pass
-    
-    def on_key_release(self, symbol, modifiers):
         pass
 
 
