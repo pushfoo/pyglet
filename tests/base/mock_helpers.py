@@ -275,6 +275,7 @@ class DummyShaderProgram(ShaderProgram, ShaderIDMixin):
         return cls(*(DummyShader(*pair) for pair in source_and_types))
 
 
+
 if __name__ == "__main__":
     from textwrap import dedent
 
