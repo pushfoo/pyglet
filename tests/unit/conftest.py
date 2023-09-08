@@ -60,11 +60,12 @@ def dummy_shader_getter(generic_dummy_shader_program: ShaderProgram):
 
     return get_dummy_shader
 
-
+# May be redundant and removable after PR finished
 # Identify module elements which are likely to return shaders.
 SHADER_GETTER_PATTERN = re.compile(r"^get(_[a-zA-Z0-9]+)*_shader$")
 
 
+# May be redundant and removable after PR finished
 def is_shader_getter(c: Callable) -> bool:
     """Returns true if an item appears to be a shader getter.
 
@@ -124,6 +125,7 @@ def pyglet_graphics_default_batch(mock_batch_factory):
     return mock_batch_factory()
 
 
+# TODO: finish work on porting to new automock shader system
 @pytest.fixture
 def default_gl_context(
         pyglet_graphics_default_group,

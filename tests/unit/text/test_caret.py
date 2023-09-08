@@ -4,6 +4,7 @@ import pytest
 
 from pyglet.text import layout, caret
 from pyglet.text.document import UnformattedDocument
+from pyglet.text.layout import get_default_decoration_shader
 
 
 @pytest.fixture(autouse=True)
@@ -12,11 +13,13 @@ def disable_automatic_caret_blinking(monkeypatch):
 
 
 @pytest.fixture
-def mock_layout(generic_dummy_shader_program):
+def mock_layout(pyglet_graphics_default_group):#generic_dummy_shader_program):
     """Create a mock layout using compatible types as spec references."""
 
     group = NonCallableMock(spec=layout.IncrementalTextDecorationGroup)
-    group.attach_mock(generic_dummy_shader_program, 'program')
+    group.attach_mock(pyglet_graphics_default_group, 'parent')
+    group.program = get_default_decoration_shader()
+    #group.attach_mock(generic_dummy_shader_program, 'program')
 
     # This *MUST* be IncrementalTextLayout since Caret relies on
     # push_handlers, which doesn't exist on any other layout class!
