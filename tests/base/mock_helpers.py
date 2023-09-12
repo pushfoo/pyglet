@@ -200,7 +200,11 @@ def get_shallow_shader_mock() -> NonCallableMock:
 
 
 class DummyShader(Shader, ShaderIDMixin):
-    """Replace the normal Shader."""
+    """Replaces the regular Shader class.
+
+    This is a class rather than a mock because of reasons outlined
+    in the docstring for :py:class:`.DummyShaderProgram` below.
+    """
 
     def __init__(self, source_string: str, shader_type: str): # noqa
         # Match
@@ -223,7 +227,18 @@ class DummyShader(Shader, ShaderIDMixin):
 
 
 class DummyShaderProgram(ShaderProgram, ShaderIDMixin):
-    """A fake shader program which approximates GLSL parsing."""
+    """A fake shader program which approximates GLSL parsing.
+
+    This is subclass rather than a mock because it must have
+    attributes are provided via :py:func:`__getitem__` rather
+    than present in the definition. Mocks appear to have only
+    two relevant options:
+
+    1. Unspecced mocks will allow access to arbitrary attributes
+    2. Specced mocks only allow access to the properties on an
+       class declaration
+
+    """
 
     def __init__(self, *shaders: DummyShaderProgram):
         self._shaders = shaders
