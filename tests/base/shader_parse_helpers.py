@@ -22,22 +22,21 @@ from pyglet.gl import GL_BOOL, GL_BOOL_VEC2, GL_BOOL_VEC3, GL_BOOL_VEC4, GL_INT_
 from pyglet.graphics.shader import _attribute_types
 from tests.base.counting import SharedOrderBase
 
-# Uniform blocks aren't even handled because they dont seem to affect unit tests
+# Uniform blocks aren't handled because they don't seem to affect unit tests
 GL_ATTRIBUTE_REGEX = re.compile(r"in\s+(?P<type>[a-zA-Z0-9_-]+)\s+(?P<name>[a-zA-Z0-9_-]+)\s*;")
-GL_UNIFORM_VAR_REGEX = re.compile(r"uniform\s+(?P<type>[a-zA-Z0-9_-]+)\s+(?P<name>[a-zA-Z0-9_-]+)\s*;")
 
 _qualifier_to_pattern = {
-    'uniform': GL_UNIFORM_VAR_REGEX,
+    # 'uniform': GL_UNIFORM_VAR_REGEX,  # Unimplemented for the moment
     'attribute': GL_ATTRIBUTE_REGEX
 }
 
-
+# Declare the shaders permitted to store each type of qualifier
 _qualifier_to_allowed_shader_types: Mapping[str, Set] = {
-    'uniform': {
-        'vertex',
-        'fragment',
-        'compute'  # examples/opengl/compute_shader.py indicates uniforms are allowed
-    },
+    # 'uniform': {
+    #     'vertex',
+    #     'fragment',
+    #     'compute'  # examples/opengl/compute_shader.py indicates uniforms are allowed
+    # },
     'attribute': {
         'vertex',
         'compute'  # same source file as above indicates they are allowed here
@@ -82,9 +81,9 @@ def parse_shader_entries(
         qual_to_pattern: Mapping[str, re.Pattern] = _qualifier_to_pattern
 ) -> Dict[str, Dict[str, str]]:
     """
-    Psuedo-parsing of shader attributes & non-block uniforms.
+    Psuedo-parsing of shader attributes
 
-    It only extracts uniforms and uniform blocks.
+    Uniforms are left unhandled for now.
 
     Args:
         source: The shader source to psuedo-parse.
